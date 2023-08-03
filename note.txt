@@ -1,0 +1,7 @@
+RENAME ALL OCCURRENCES OF SAME VARIABLE BY USING F2. THANK ME LATER UWU LMAO
+
+THINGS TO WORK ON IN THE CHESS_AI CODE (PLAYER VS PLAYER):
+1. Undo castle on check bug - If a scenario when youre unable to perform castling because the castling range is protected
+                            by an enemy piece, when you try to undo moves and attempt castling again, given that the king 
+                            and rook havent moved yet and the castling range is unprotected by any enemy piece, the 
+                            program seem to not view it as a valid move (you need a way to undo can_castle state)
