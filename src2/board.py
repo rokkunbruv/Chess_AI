@@ -91,17 +91,25 @@ class Board():
 
         # pawn promotion
         if isinstance(self.tiles[final[0]][final[1]].piece, Pawn):
-            pawn = pawn_prom = self.tiles[final[0]][final[1]].piece
+            pawn = self.tiles[final[0]][final[1]].piece
 
-            if pawn_prom.check_promotion():
+            # check if pawn promoted
+            if pawn.check_promotion():
+                # type = game.promotion()
+                
+                # set pawn promoted to true
                 pawn.promoted = True
 
-                pawn_prom.promotion(self)
+                # set promoted piece
+                promoted_piece = pawn.promotion(self)
 
+                # save promoted pawn
                 move.promote = pawn
-                print(move.promote.type)
 
-                move.piece = pawn_prom
+                # replace pawn with promoted piece
+                self.tiles[final[0]][final[1]].piece = move.piece = promoted_piece
+
+                move.piece.update_tile(final[0], final[1])
 
         # significies that the piece has moved
         if not piece.moved:

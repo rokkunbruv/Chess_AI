@@ -143,8 +143,6 @@ class Main:
                                 # moves piece to the new location
                                 board.move(move)
 
-                                print(move.piece.type)
-
                                 # play piece sound (if captured, play move_captured, else play move_sound)
                                 game.play_sound(captured)
 

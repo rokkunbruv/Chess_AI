@@ -165,18 +165,20 @@ class Pawn(Piece):
         board.pieces_on_board.remove(self)
         
         if upgrade == 'rook':
-            self = Rook(self.color, self.row, self.col)
+            piece = Rook(self.color, self.row, self.col)
         elif upgrade == 'knight':
-            self = Knight(self.color, self.row, self.col)
+            piece = Knight(self.color, self.row, self.col)
         elif upgrade == 'bishop':
-            self = Bishop(self.color, self.row, self.col)
+            piece = Bishop(self.color, self.row, self.col)
         elif upgrade == 'queen':
-            self = Queen(self.color, self.row, self.col)
+            piece = Queen(self.color, self.row, self.col)
         # error
         else:
             pass
+        
+        board.pieces_on_board.append(piece)
 
-        board.pieces_on_board.append(self)
+        return piece
 
     # allows for pawn promotion
     def check_promotion(self):

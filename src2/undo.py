@@ -63,6 +63,20 @@ def undo(board):
             else:
                 board.black_castle = None
 
+    # check if previous move if a promotion move
+    if move.promote:
+        # remove promoted piece
+        board.pieces_on_board.remove(piece)
+        board.tiles[move.initial[0]][move.initial[1]].piece = None
+
+        # brings pawn back to board
+        unpromoted_pawn = board.tiles[move.initial[0]][move.initial[1]].piece = move.promote
+        unpromoted_pawn.update_tile(move.initial[0], move.initial[1])
+        board.pieces_on_board.append(unpromoted_pawn)
+
+        # set promoted to False
+        unpromoted_pawn.promoted = False
+
     # if enemy piece was captured
     if move.capture:
         # brings back resurrected piece to pieces_on_board
