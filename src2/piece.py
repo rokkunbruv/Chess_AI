@@ -127,7 +127,6 @@ class Pawn(Piece):
                         # ensures that captured pawn has been recently moved
                         # otherwise you cant do en passant
                         if not c.enable_enpas:
-                            print(c.enable_enpas)
                             continue
 
                         # id like to call this as a pretty clever way for that enemy pawn to be actually captured
@@ -245,7 +244,7 @@ class King(Piece):
         self.can_castle = True # false if king cant perform castle anymore
         self.q_castle = None # stores rook move in queen castling
         self.k_castle = None # stores rook move in king castling
-        #self.castle = None # True if king performs castling
+        self.castled = False # true if king has performed castling
 
         # king under check
         self.check = False
@@ -253,7 +252,6 @@ class King(Piece):
         super().__init__('king', color, 10000.0, row, col, sym = 'K') # value of king = any extreme large value (e.g. 10000)
 
     def calc_moves(self, board):
-        # clear castling moves
         self.q_castle = None
         self.k_castle = None
         
@@ -321,7 +319,7 @@ class King(Piece):
                     # castling is not possible because there are pieces in between ?
                     if board.tiles[self.row][c_range].has_piece():
                         break
-                    
+
                     # rook move
                     initial = (r_rook.row, r_rook.col)
                     final = (r_rook.row, r_rook.col-2)
@@ -331,17 +329,16 @@ class King(Piece):
                     initial = (self.row, self.col)
                     final = (self.row, self.col+2)
                     move = Move(self, initial, final)
-
+                    
+                    # this code prevents king from castling thru check
                     if board.check(move):
                         break
 
                     if c_range == 6:
                         # add move
                         self.add_moves(move, board)
-                        print('h')
 
-                        print(move.piece.k_castle)
-
+    # check if king has performed a castling move
     def check_castle(self, move):
         return abs(move.final[1] - move.initial[1]) == 2
 

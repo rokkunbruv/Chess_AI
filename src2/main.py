@@ -130,7 +130,7 @@ class Main:
                         final = (released_row, released_col)
                         move = Move(dragger.piece, initial, final, captured_piece = c)
 
-                        # checks if the location you want the piece to place on is a valid move location
+                        # doesnt run when no valid moves are found
                         if board.valid_move(dragger.piece, move):
                             # checks if selected tile has piece (for playing sfx)
                             captured = board.tiles[released_row][released_col].has_piece()
@@ -144,11 +144,8 @@ class Main:
                             # play piece sound (if captured, play move_captured, else play move_sound)
                             game.play_sound(captured)
 
+                            # scans the board if enemy king in check
                             board.scan_check(move)
-
-                            # prints the move done by the player on the terminal
-                            #print(move)
-                            move.algebra_not(board)
 
                             # saves the moves into board.record_of_moves
                             board.save_moves(move)

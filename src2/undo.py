@@ -1,6 +1,9 @@
 # undoes moves in board
 # i made this function as its own module since this function can get messy
 
+'''TANGINA MO PISTENG GIATAY NGANONG NAG COMPSCI MAN KO TTTTTTTTTTTTT_____________TTTTTTTTTTTTTTTTTT'''
+'''YAYYYYYYYY ITT FINALLY WORKED!!!!! I LOVE COMPSCI BEST COURSE!!!!!!!!!!!!!!!!!1'''
+
 from piece import *
 
 # handles all undoing events
@@ -34,16 +37,17 @@ def undo(board):
         # update loc of resurrected pieces
         res_piece.update_tile(move.final[0], move.final[1])
         
+    # undoes castle
     if isinstance(piece, King):
         # selects what kind of castling move
         cas_move = None
 
-        if piece.q_castle:
-            cas_move = piece.q_castle
-        elif piece.k_castle:
-            cas_move = piece.k_castle
-
-        print(cas_move)
+        # select castling move
+        if piece.check_castle(move):
+            if piece.color == 'white':
+                cas_move = board.white_castle
+            else:
+                cas_move = board.black_castle
 
         if cas_move:
             # switches rook back to orig pos
@@ -53,6 +57,11 @@ def undo(board):
 
             # rook back in starting pos
             rook.moved = False
+
+            if piece.color == 'white':
+                board.white_castle = None
+            else:
+                board.black_castle = None
 
     # if enemy piece was captured
     if move.capture:

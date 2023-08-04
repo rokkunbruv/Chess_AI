@@ -44,13 +44,13 @@ class Move:
 
     # prints move
     def __str__(self):
-        piece_info = f'Piece: {self.piece.type}'
+        piece_info = f'Piece: {self.piece.type.capitalize()}'
         movement = f'From {self.initial} to {self.final}'
         captured = ''
         if self.capture:
-            captured = f'Capturing {self.captured_piece.color} {self.captured_piece.type}'
+            captured = f'\nCapturing {self.captured_piece.color} {self.captured_piece.type}'
 
-        return piece_info + movement + captured
+        return f'{piece_info}\n{movement}{captured}'
     
     # allows checking if the move you're going to do is in valid moves
     def __eq__(self, other):

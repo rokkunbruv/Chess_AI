@@ -5,3 +5,6 @@ THINGS TO WORK ON IN THE CHESS_AI CODE (PLAYER VS PLAYER):
                             by an enemy piece, when you try to undo moves and attempt castling again, given that the king 
                             and rook havent moved yet and the castling range is unprotected by any enemy piece, the 
                             program seem to not view it as a valid move (you need a way to undo can_castle state)
+                            
+                            - PROBLEM IS that my current code doesnt actually check the previous state of the king (which
+                            i thought was stored in the record_of_moves)

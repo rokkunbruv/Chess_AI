@@ -29,12 +29,15 @@ class Board():
         self.enemy_cant_move = False # determines if next player can't move anymore
         self.king_check = False # determines if king is in check
         
-        self.pieces_on_board = []
+        self.pieces_on_board = [] # keeps track of alive pieces
+        self.record_of_moves = [] # keeps track of moves done
 
-        self.record_of_moves = []
+        self.black_king = None # keeps track of black king
+        self.white_king = None # keeps track of white king
 
-        self.black_king = None
-        self.white_king = None
+        # keeps track of castling moves done 
+        self.white_castle = None 
+        self.black_castle = None
 
         # creates board and add pieces to board
         self._create()
@@ -51,10 +54,16 @@ class Board():
         initial = move.initial
         final = move.final
 
-        '''add piece.castle if undo castling is buggy'''
+        # moves rook if perform castling
         if isinstance(piece, King):
             if piece.check_castle(move): 
-                castle_move(self, move)
+                cas_move = castle_move(self, move)
+
+                # save castling move to board
+                if piece.color == 'white':
+                    self.white_castle = cas_move
+                else:
+                    self.black_castle = cas_move
 
         # assigns captured piece to be added to self.record_of_moves
         if move.capture:
@@ -166,7 +175,6 @@ class Board():
         if linear_check(self, king):
             check_state = True
         elif diagonal_check(self, king):
-            print('h')
             check_state = True
         elif knight_check(self, king):
             check_state = True
@@ -178,7 +186,6 @@ class Board():
         else:
             king.check = False
 
-        print(check_state)
         return check_state
 
     # checks if the location you're dragging the piece to is a valid square
@@ -312,12 +319,16 @@ def castle_move(board, move):
     king = move.piece
 
     if king.q_castle:
-        board.move(king.q_castle)
+        cas_move = king.q_castle
     elif king.k_castle:
-        board.move(king.k_castle)
+        cas_move = king.k_castle
     else:
         '''ERROOOR!'''
         pass
+
+    board.move(cas_move)
+
+    return cas_move
 
 # checks linear directions (n,s,e,w) for king threats
 def linear_check(board, king):
