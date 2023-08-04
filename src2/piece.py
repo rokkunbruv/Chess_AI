@@ -161,23 +161,27 @@ class Pawn(Piece):
 
     # promote a pawn
     # will only run if pawn has reached to other side of board
-    def promotion(self, upgrade='queen'):
+    def promotion(self, board, upgrade='queen'):
+        board.pieces_on_board.remove(self)
+        
         if upgrade == 'rook':
-            pass
+            self = Rook(self.color, self.row, self.col)
         elif upgrade == 'knight':
-            pass
+            self = Knight(self.color, self.row, self.col)
         elif upgrade == 'bishop':
-            pass
+            self = Bishop(self.color, self.row, self.col)
         elif upgrade == 'queen':
-            self = Queen()
+            self = Queen(self.color, self.row, self.col)
         # error
         else:
             pass
 
+        board.pieces_on_board.append(self)
+
     # allows for pawn promotion
     def check_promotion(self):
         end = 0 if self.color == 'white' else 7
-        return True if self.y == end else False
+        return True if self.row == end else False
 
 class Rook(Piece):
     def __init__(self, color, row, col):

@@ -89,6 +89,20 @@ class Board():
             else:
                 self.black_king = self.tiles[final[0]][final[1]].piece
 
+        # pawn promotion
+        if isinstance(self.tiles[final[0]][final[1]].piece, Pawn):
+            pawn = pawn_prom = self.tiles[final[0]][final[1]].piece
+
+            if pawn_prom.check_promotion():
+                pawn.promoted = True
+
+                pawn_prom.promotion(self)
+
+                move.promote = pawn
+                print(move.promote.type)
+
+                move.piece = pawn_prom
+
         # significies that the piece has moved
         if not piece.moved:
             move.from_starting_tile = True
@@ -132,6 +146,11 @@ class Board():
             PLS PLS PLS IT MAGICALLY WORK FOR SOME REASON PLS DONT
             FAIL ME ONEGAI SENPAI UWU'''
 
+        '''HUGE SHOUTOUT btw to rcgldr at stack overflow for giving me an idea on how to approach 
+            check scanning more efficiently (you can find their comment at
+            https://stackoverflow.com/questions/53924729/is-there-a-way-to-speed-up-a-detect-
+            check-method-in-chess/53924967#53924967?newreg=d2a9c4c1bbc84b15a6848b73470bb99b)
+        '''
         # scan threats
         if linear_check(self, p):
             check_state = True
@@ -188,6 +207,41 @@ class Board():
 
         return check_state
 
+    # checks if enemy has no valid moves
+    def cant_move(self, color):
+        # set enemy color
+        enemy_color = 'black' if color == 'white' else 'white'
+
+        # set king
+        if enemy_color == 'white':
+            king = self.white_king
+        else:
+            king = self.black_king
+        
+        # return False if king has valid moves
+        king.calc_moves(self)
+        if king.valid_moves != []:
+            king.clear_moves()
+            return False
+        king.clear_moves()
+
+        # else check all enemy pieces on board except king
+        for enemy in self.pieces_on_board:
+            if enemy.color == enemy_color and not isinstance(enemy, King):
+                # generate valid moves
+                enemy.calc_moves(self)
+
+                # return False if enemy has valid moves
+                if enemy.valid_moves != []:
+                    enemy.clear_moves()
+                    return False
+                
+                # else clear moves and try again
+                enemy.clear_moves()
+        
+        # return True if no valid moves were generated
+        return True
+
     # checks if the location you're dragging the piece to is a valid square
     def valid_move(self, piece, move):
         return move in piece.valid_moves
@@ -204,23 +258,6 @@ class Board():
                 p.enable_enpas = False
 
         piece.enable_enpas = True
-
-    # checks for potential stalemate / checkmate
-    def cant_move(self, piece):
-        temp_board = copy.deepcopy(self)
-        
-        # checks if the enemy can still move (if not, checkmate = True; else, False)
-        for p in temp_board.pieces_on_board:
-            if p.color != piece.color:
-                temp_board.calc_moves(p, p.pos[0], p.pos[1], bool=True)
-
-                for move in p.moves:
-                    if temp_board.valid_move(p, move):
-                        self.enemy_cant_move = False
-                        return
-        self.enemy_cant_move = True
-                
-       # saves moves made to record_of_moves
     
     # saves move done to record_of_moves
     def save_moves(self, move):
@@ -251,61 +288,6 @@ class Board():
         #fen_str = '8/2pp6/8/KP5r/1R5p2k/8/4P4/8'
 
         fen(self, fen_str)
-
-    # add valid moves to piece.moves if king isn't in check
-    def _if_check(self, piece, move, bool, rook=None, rook_move=None):
-        # add castling moves to valid moves
-        if rook and rook_move:
-            if bool:
-                if not self.in_check(piece, move) and not self.in_check(rook, rook_move):
-                    rook.add_moves(rook_move)
-                    piece.add_moves(move)
-                else:
-                    self.king_check = True
-                    # disables king to castle when get checked
-                    piece.can_castle = False
-            else:
-                rook.add_moves(rook_move)
-                piece.add_moves(move)
-        # add all other normal moves to valid moves
-        else:
-            if bool:
-                # add moves if king isn't check
-                if not self.in_check(piece, move):
-                    piece.add_moves(move)
-                else:
-                    self.king_check = True
-
-                    # disables king to castle when get checked
-                    if isinstance(piece, King):
-                        piece.can_castle = False
-            # checks for any potential checks
-            else:
-                piece.add_moves(move)
-
-    # see if enemy will get checked because of that move (for checkmate purposes)
-    def _see_if_check_enemy(self, piece, move):
-        for p in self.pieces_on_board:
-            if p.color == piece.color:
-                self.calc_moves(piece, p.pos[0], p.pos[1], bool=False)
-
-                for move in piece.moves:
-                    if isinstance(move.final.piece, King):
-                        return True
-        return False
-    
-    # checks whether the piece is already on initial location when undo
-    def _reset_moved(self, move):
-        # automatically set reset_moved to False if record_of_moves is empty
-        if self.record_of_moves == []:
-            return False
-        # checks the first instance of the piece, if the move of the first instance recorded on record_of_moves
-        # is same as move, returns False
-        if move:
-            for m in self.record_of_moves:
-                if m[1] == move[1]:
-                    return False
-        else: return True
     
     @staticmethod
     def in_range(*args):

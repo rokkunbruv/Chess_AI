@@ -14,6 +14,9 @@ class Move:
         self.captured_piece = captured_piece
         self.capture = True if self.captured_piece != None else False
 
+        # stores promoted pawn
+        self.promote = None
+
         # True when initial pos is starting pos of piece
         self.from_starting_tile = False
 

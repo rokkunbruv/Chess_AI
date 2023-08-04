@@ -96,20 +96,21 @@ class Main:
                     motion_row = event.pos[1] // TILE_SIZE
                     motion_col = event.pos[0] // TILE_SIZE
                     
-                    # displays mouse hovering depending on the location of cursor
-                    game.set_hover(motion_col, motion_row)
+                    if board.in_range(motion_row, motion_col):
+                        # displays mouse hovering depending on the location of cursor
+                        game.set_hover(motion_col, motion_row)
 
-                    # constantly updates the pos of the dragging object
-                    if dragger.dragging: # checks if a piece is currently dragged
-                        dragger.update_mouse(event.pos)
+                        # constantly updates the pos of the dragging object
+                        if dragger.dragging: # checks if a piece is currently dragged
+                            dragger.update_mouse(event.pos)
 
-                        # updates everything on screen
-                        game.show_bg(screen)
-                        game.show_last_moves(screen)
-                        game.show_moves(screen)
-                        game.show_pieces(screen, board)
-                        game.show_hover(screen)
-                        dragger.update_blit(screen)
+                            # updates everything on screen
+                            game.show_bg(screen)
+                            game.show_last_moves(screen)
+                            game.show_moves(screen)
+                            game.show_pieces(screen, board)
+                            game.show_hover(screen)
+                            dragger.update_blit(screen)
 
                 # if you release mouse left-click
                 elif event.type == pygame.MOUSEBUTTONUP:
@@ -121,58 +122,58 @@ class Main:
                         released_row = dragger.mouse_y // TILE_SIZE
                         released_col = dragger.mouse_x // TILE_SIZE
 
-                        # stores piece being captured (None if dragger.piece only moved)
-                        c = board.tiles[released_row][released_col].piece
+                        if board.in_range(released_row, released_col):
+                            # stores piece being captured (None if dragger.piece only moved)
+                            c = board.tiles[released_row][released_col].piece
 
-                        # creates a move object that stores the initial tile pos and the final tile pos
-                        # since you just performed a move
-                        initial = (dragger.initial_row, dragger.initial_col)
-                        final = (released_row, released_col)
-                        move = Move(dragger.piece, initial, final, captured_piece = c)
+                            # creates a move object that stores the initial tile pos and the final tile pos
+                            # since you just performed a move
+                            initial = (dragger.initial_row, dragger.initial_col)
+                            final = (released_row, released_col)
+                            move = Move(dragger.piece, initial, final, captured_piece = c)
 
-                        # doesnt run when no valid moves are found
-                        if board.valid_move(dragger.piece, move):
-                            # checks if selected tile has piece (for playing sfx)
-                            captured = board.tiles[released_row][released_col].has_piece()
+                            # doesnt run when no valid moves are found
+                            if board.valid_move(dragger.piece, move):
+                                # checks if selected tile has piece (for playing sfx)
+                                captured = board.tiles[released_row][released_col].has_piece()
 
-                            # sets en_passant state of the pawn being moved to True
-                            board.enable_en_passant(move.piece)
+                                # sets en_passant state of the pawn being moved to True
+                                board.enable_en_passant(move.piece)
 
-                            # moves piece to the new location
-                            board.move(move)
+                                # moves piece to the new location
+                                board.move(move)
 
-                            # play piece sound (if captured, play move_captured, else play move_sound)
-                            game.play_sound(captured)
+                                print(move.piece.type)
 
-                            # scans the board if enemy king in check
-                            board.scan_check(move)
+                                # play piece sound (if captured, play move_captured, else play move_sound)
+                                game.play_sound(captured)
 
-                            # saves the moves into board.record_of_moves
-                            board.save_moves(move)
+                                # scans the board if enemy king in check
+                                in_check = board.scan_check(move)
 
-                            # removes record of captured piece from the board
-                            board.captured_piece = None
+                                # saves the moves into board.record_of_moves
+                                board.save_moves(move)
 
-                            # checks for check mate
-                            piece = board.tiles[move.final[0]][move.final[1]].piece
-                            #board.cant_move(piece)
-                            # declare winner if pieces can't move and king in check
-                            if board.enemy_cant_move and board.king_check:
-                                game.declare_winner_by_mate()
-                            # declares stalemate if pieces can't move but king isn't in check
-                            elif board.enemy_cant_move:
-                                game.declare_stalemate()
+                                # removes record of captured piece from the board
+                                board.captured_piece = None
 
-                            # updates everything
-                            game.show_bg(screen)
-                            game.show_last_moves(screen)
-                            game.show_pieces(screen, board)
+                                # declare check mate if enemy cant move and king in check
+                                if board.cant_move(dragger.piece.color) and in_check:
+                                    game.declare_winner_by_mate()
+                                # declare stalemate if enemy cant move
+                                elif board.cant_move(dragger.piece.color):
+                                    game.declare_stalemate()
 
-                            # switches turn to other player
-                            game.next_turn()
+                                # updates everything
+                                game.show_bg(screen)
+                                game.show_last_moves(screen)
+                                game.show_pieces(screen, board)
 
-                        else: 
-                            dragger.piece.clear_moves()
+                                # switches turn to other player
+                                game.next_turn()
+
+                            else: 
+                                dragger.piece.clear_moves()
                     
                     # sets dragger to 'not activated' state, meaning a piece is currently not being dragged
                     dragger.undrag_piece()
