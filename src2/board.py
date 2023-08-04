@@ -91,7 +91,6 @@ class Board():
     # filters moves thatll lead to check AND only allow valid moves that will disable a check
     def check(self, move):
         check_state = False
-        
         # MINI MOVE METHOD
 
         # temporarily stores captured piece (still works even when no piece are captured)
@@ -120,144 +119,26 @@ class Board():
             else:
                 p = self.black_king
 
-        # if other pieces make a move, scans the board for checks
-        #   if king gets checked, youre not allowed to make that move
-        # if your king make a move, check if king in check
-        #   if king in check, then you can only make a move on no threat tiles
-        #   if your king not in check, scans the board for checks
-        #       if that move causes a check, youre not allowed to make that move
-        # if your enemy causes a check, evaluates your pieces
-        #   if a piece can block a check, it is valid
-        #   if a piece doesnt block a check, you cant make that move
-
         '''BRO I HOPE TO GOD THIS ALGO WONT GIVE ME A TON OF BUGS
             PLS PLS PLS IT MAGICALLY WORK FOR SOME REASON PLS DONT
             FAIL ME ONEGAI SENPAI UWU'''
 
-        # scans vertical and horizontal directions of king for threats
-        for line in [[1,0], [-1,0], [0,1], [0,-1]]:
-            # reset initial pos of king
-            r = p.row
-            c = p.col
-            while True:
-                # increment every tile for each direction
-                r = r + line[0]
-                c = c + line[1]
+        # scan threats
+        if linear_check(self, p):
+            check_state = True
+        elif diagonal_check(self, p):
+            check_state = True
+        elif knight_check(self, p):
+            check_state = True
+        elif king_check(self, p):
+            check_state = True
 
-                # ensures that it falls within board
-                if self.in_range(r, c):
-                    # grabs the piece on that tile
-                    threat = self.tiles[r][c].piece
-                    # checks if there's actually a piece there (piece = None if the tile is empty)
-                    if threat != None:
-                        # checks if that piece is your opponent
-                        if threat.color != p.color:
-                            # if that piece is a queen or a rook then theyre checking you
-                            if isinstance(threat, Queen) or isinstance(threat, Rook):
-                                p.check = True
-                                check_state = True
-                                break
-                            # else they arent a threat to your king
-                            else:
-                                break
-                        # move on to next direction if that piece if your fren
-                        else:
-                            break
-                # if you move out of bounds then its time to move on to next direction
-                else:
-                    break
-
-                # breaks while loop if king is in check
-                if check_state:
-                    break
-
-        # if king is not threatened in the vertical and horizontal directions,
-        # it's time to check the diagonal directions
-        if not check_state:
-            # the same logic as w/ vertical & horizontal directions
-            for line in [[1,1], [-1,1], [1,-1], [-1,-1]]:
-                r = p.row
-                c = p.col
-                while True:
-                    r = r + line[0]
-                    c = c + line[1]
-
-                    if self.in_range(r, c):
-                        threat = self.tiles[r][c].piece
-                        if threat != None:
-                            if threat.color != p.color:
-                                # this time it checks whether the potential threat is a queen or a bishop
-                                # and if so yes your king is in check
-                                if isinstance(threat, Queen) or isinstance(threat, Bishop):
-                                    p.check = True
-                                    check_state = True
-                                    break
-                                # since this checks for potential threats diagonally, might as well check
-                                # for any pawn and king threats since they can capture diagonally
-                                # the abs(r - p.row) == 1 is there to check when enemy pawn / king is protecting
-                                # a tile within the king's range of movement
-                                elif (isinstance(threat, Pawn) or isinstance(threat, King)) and abs(r - p.row) == 1:
-                                    check_state = True
-                                    break
-                                # if youre wondering this eye scratching else blocks then refer
-                                # to the code above
-                                else:
-                                    break
-                            else:
-                                break
-                    else:
-                        break
-                
-                    if check_state:
-                        break
-
-        # if king still isnt being threatened then check if knights are threatening king
-        if not check_state:
-            # looks for enemy knights on piecs_on_board
-            for knight in self.pieces_on_board:
-                if isinstance(knight, Knight) and knight.color != move.piece.color:
-                    # basically calc_moves of knight but much faster coz it gets rid of the move initialization
-                    # thing and this code eliminates bugs than using calc_moves
-                    # which causes a bug (your knight fsr have normal valid moves when king in check but when you 
-                    # press them again then suddenly they have the valid moves when king in check, yeah weird)
-                    for target in [(-2,-1), (2,-1), (-2,1), (2,1), (-1,-2), (1,-2), (-1,2), (1,2)]:
-                        r = knight.row + target[0]
-                        c = knight.col + target[1]
-
-                        # if target square contains your king then your king in check
-                        if self.in_range(r, c):
-                            if self.tiles[r][c].piece == p:
-                                check_state = True
-                                break
-                        else:
-                            break
-                    
-                if check_state:
-                    break
-                    
-        # alr now, ensuring that the kings dont go near to each other is quite complicated
-        # thats actually one of the main reasons i made a new version of this chess ai thing
-        # so this code is me trying my best to make it pretty fast even tho it looks ugly
-        if not check_state:
-            # scans range of your king
-            for range in [(1,1), (-1,1), (1,-1), (-1,-1), (1,0), (0,1), (-1,0), (0,-1)]:
-                r = p.row + range[0]
-                c = p.col + range[1]
-
-                if self.in_range(r, c):
-                    k = self.tiles[r][c].piece
-                    if k:
-                        # if enemy king is within your king range then your king cant go there
-                        # thus check_state = True
-                        if isinstance(k, King) and p.color != k.color:
-                            check_state = True
-                            break
-                else:
-                    break
-                if check_state:
-                    break
+        if check_state:
+            p.check = True
+        else:
+            p.check = False
+            
                         
-
         # MINI MOVE METHOD
 
         # now that we've done the check calculation, we can bring back the piece to where it should be
@@ -270,11 +151,34 @@ class Board():
         if temp_c:
             temp_c.captured = False
             self.update_pieces_on_board(temp_c)
+
+        return check_state
+
+    # scans board for check after move is executed
+    def scan_check(self, move):
+        check_state = False
         
-        # if king not in check, then set p.check to False
-        if check_state == False:
-            p.check = False
-        
+        if move.piece.color == 'white':
+            king = self.black_king
+        else:
+            king = self.white_king
+
+        if linear_check(self, king):
+            check_state = True
+        elif diagonal_check(self, king):
+            print('h')
+            check_state = True
+        elif knight_check(self, king):
+            check_state = True
+        elif king_check(self, king):
+            check_state = True
+
+        if check_state:
+            king.check = True
+        else:
+            king.check = False
+
+        print(check_state)
         return check_state
 
     # checks if the location you're dragging the piece to is a valid square
@@ -414,4 +318,116 @@ def castle_move(board, move):
     else:
         '''ERROOOR!'''
         pass
+
+# checks linear directions (n,s,e,w) for king threats
+def linear_check(board, king):
+    # scans vertical and horizontal directions of king for threats
+    for line in [[1,0], [-1,0], [0,1], [0,-1]]:
+        # reset initial pos of king
+        r = king.row
+        c = king.col
+
+        while True:
+            # increment every tile for each direction
+            r = r + line[0]
+            c = c + line[1]
+
+            # ensures that it falls within board
+            if board.in_range(r, c):
+                # grabs the piece on that tile
+                threat = board.tiles[r][c].piece
+                # checks if there's actually a piece there (piece = None if the tile is empty)
+                if threat != None:
+                    # checks if that piece is your opponent
+                    if threat.color != king.color:
+                        # if that piece is a queen or a rook then theyre checking you
+                        if isinstance(threat, Queen) or isinstance(threat, Rook):
+                            return True
+                        # else they wont threathen you and its safe to say that your king is good
+                        else:
+                            break
+                    # else they arent a threat to your king
+                    else:
+                        break
+            # if you move out of bounds then its time to move on to next direction
+            else:
+                break
+    
+    return False
+
+# check diagonal directions for king threats
+def diagonal_check(board, king):
+    # the same logic as w/ vertical & horizontal directions
+    for line in [[1,1], [-1,1], [1,-1], [-1,-1]]:
+        r = king.row
+        c = king.col
+
+        while True:
+            r = r + line[0]
+            c = c + line[1]
+
+            if board.in_range(r, c):
+                threat = board.tiles[r][c].piece
+                if threat != None:
+                    if threat.color != king.color:
+                        # this time it checks whether the potential threat is a queen or a bishop
+                        # and if so yes your king is in check
+                        if isinstance(threat, Queen) or isinstance(threat, Bishop):
+                            return True
+                        # since this checks for potential threats diagonally, might as well check
+                        # for any pawn and king threats since they can capture diagonally
+                        # the abs(r - p.row) == 1 is there to check when enemy pawn / king is protecting
+                        # a tile within the king's range of movement
+                        elif (isinstance(threat, Pawn) or isinstance(threat, King)) and abs(r - king.row) == 1:
+                            return True
+                        # else then that piece wont threaten you so ur good
+                        else:
+                            break
+                    else:
+                        break
+            else:
+                break
+                
+    return False
+
+# check if knights threaten king
+def knight_check(board, king):
+    # looks for enemy knights on piecs_on_board
+    for knight in board.pieces_on_board:
+        if isinstance(knight, Knight) and knight.color != king.color:
+            # basically calc_moves of knight but much faster coz it gets rid of the move initialization
+            # thing and this code eliminates bugs than using calc_moves
+            # which causes a bug (your knight fsr have normal valid moves when king in check but when you 
+            # press them again then suddenly they have the valid moves when king in check, yeah weird)
+            for target in [(-2,-1), (2,-1), (-2,1), (2,1), (-1,-2), (1,-2), (-1,2), (1,2)]:
+                r = knight.row + target[0]
+                c = knight.col + target[1]
+
+                # if target square contains your king then your king in check
+                if board.in_range(r, c):
+                    if board.tiles[r][c].piece == king:
+                        return True
+                else:
+                    break
+                    
+    return False
+
+# prevents kings from going near each other
+def king_check(board, king):
+    # scans range of your king
+    for range in [(1,1), (-1,1), (1,-1), (-1,-1), (1,0), (0,1), (-1,0), (0,-1)]:
+        r = king.row + range[0]
+        c = king.col + range[1]
+
+        if board.in_range(r, c):
+            k = board.tiles[r][c].piece
+            if k:
+                # if enemy king is within your king range then your king cant go there
+                # thus check_state = True
+                if isinstance(k, King) and king.color != k.color:
+                    return True
+        else:
+            break
+    
+    return False
 

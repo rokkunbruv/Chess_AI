@@ -144,9 +144,11 @@ class Main:
                             # play piece sound (if captured, play move_captured, else play move_sound)
                             game.play_sound(captured)
 
+                            board.scan_check(move)
+
                             # prints the move done by the player on the terminal
-                            print(move)
-                            #move.move_status()
+                            #print(move)
+                            move.algebra_not(board)
 
                             # saves the moves into board.record_of_moves
                             board.save_moves(move)
