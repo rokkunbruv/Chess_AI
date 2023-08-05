@@ -1,4 +1,5 @@
 RENAME ALL OCCURRENCES OF SAME VARIABLE BY USING F2. THANK ME LATER UWU LMAO
+PREVIEW README.MD USING CTRL+K V
 
 THINGS TO WORK ON IN THE CHESS_AI CODE (PLAYER VS PLAYER):
 1. Ability to choose which piece to promote to - requires some complex big brain pygame shit that i cant comprehend

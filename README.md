@@ -10,8 +10,7 @@ Tho i mostly coded the whole thing by following through a tutorial (huge shoutou
 
 ## Features
 - **Player vs player mode**
-- **Computer mode** (*can only make random moves*) that you can fight against (you'll probably win most of the time) or have
-two computers fight against each other
+- **Computer mode** (*can only make random moves*) that you can fight against (you'll probably win most of the time) or have two computers fight each other by pressing `C`
 - Can do **castling** and **en passant** (i pray to God they're bugless)
 - **Check**, **checkmate**, and **stalemate** feature (draw feature currently being developed)
 - You can **switch themes** by pressing `T` (yay colors)
