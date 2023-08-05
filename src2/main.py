@@ -9,7 +9,7 @@ from move import Move
 from piece import *
 from undo import undo
 
-#from computer import Computer
+from computer import Computer
 
 class Main:
     def __init__(self):
@@ -17,10 +17,6 @@ class Main:
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption('Chess')
         self.game = Game()
-
-        # enable player vs computer
-        #self.computer = Computer('black')
-        #self.computer2 = Computer('white')
     
     def main_loop(self):
         # renaming commonly used objects from other classes for readability purposes
@@ -29,11 +25,12 @@ class Main:
         board = self.game.board
         dragger = self.game.dragger
 
-        '''computer = self.computer
-        computer.board = board
+        # initialize Computers
+        computer_w = Computer('white')
+        computer_b = Computer('black')
 
-        computer2 = self.computer2
-        computer2.board = board'''
+        # True to enable computer vs computer
+        com_vs_com = False
 
         # main pygame loop
         while True:
@@ -47,18 +44,16 @@ class Main:
                 dragger.update_blit(screen)
 
             # computer movements
-            '''if not game.end_game:
-                if game.turn == computer.color:
-                    self._computer_turn(computer, board, game, screen)
-                    game.next_turn()
-
-                elif game.turn == computer2.color:
-                    self._computer_turn(computer2, board, game, screen)
-                    game.next_turn()'''
+            if com_vs_com:
+                if not game.end_game:
+                    if game.turn == computer_w.color:
+                        self._computer_turn(computer_w, board, game, screen)
+                    elif game.turn == computer_b.color:
+                        self._computer_turn(computer_b, board, game, screen)
                 
             for event in pygame.event.get():
                 # if you press mouse left-click
-                if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.type == pygame.MOUSEBUTTONDOWN and not com_vs_com:
                     dragger.update_mouse(event.pos)
 
                     # stores the row and col location of the mouse cursor
@@ -90,7 +85,7 @@ class Main:
                                 game.show_pieces(screen, board)
 
                 # when the mouse cursor is moving
-                elif event.type == pygame.MOUSEMOTION:
+                elif event.type == pygame.MOUSEMOTION and not com_vs_com:
                     # stores current row and col locations of mouse cursor
                     motion_row = event.pos[1] // TILE_SIZE
                     motion_col = event.pos[0] // TILE_SIZE
@@ -112,7 +107,7 @@ class Main:
                             dragger.update_blit(screen)
 
                 # if you release mouse left-click
-                elif event.type == pygame.MOUSEBUTTONUP:
+                elif event.type == pygame.MOUSEBUTTONUP and not com_vs_com:
                     # updates the current mouse pos
                     if dragger.dragging:
                         dragger.update_mouse(event.pos)
@@ -160,6 +155,9 @@ class Main:
                                 # declare stalemate if enemy cant move
                                 elif board.cant_move(dragger.piece.color):
                                     game.declare_stalemate()
+                                # declare draw if only kings on board
+                                elif len(board.pieces_on_board) == 2:
+                                    game.declare_draw()
 
                                 # updates everything
                                 game.show_bg(screen)
@@ -176,8 +174,9 @@ class Main:
                     dragger.undrag_piece()
 
                 elif event.type == pygame.KEYDOWN:
+
                     # click 'u' to undo move
-                    if event.key == pygame.K_u:
+                    if event.key == pygame.K_u and not com_vs_com:
                         # undo won't work when a piece is currently being dragged and when there's nothing to undo
                         if not dragger.dragging and board.record_of_moves != []:
                             # undos the recent move
@@ -199,7 +198,27 @@ class Main:
                         game = self.game
                         board = self.game.board
                         dragger = self.game.dragger
-                        record_of_moves = []
+                        com_vs_com = False
+
+                    # click 'c' to enable computer vs computer
+                    # turn off computer vs computer & restart by pressing 'c' again
+
+                    # only enable computer vs computer if player didn't touch
+                    # any pieces on board
+                    if event.key == pygame.K_c and board.record_of_moves == []:
+                        # restart if computer vs computer is on
+                        if com_vs_com:
+                            game.reset()
+
+                            # restart initialization
+                            screen = self.screen
+                            game = self.game
+                            board = self.game.board
+                            dragger = self.game.dragger
+                            com_vs_com = False
+                        # else enable it
+                        else:
+                            com_vs_com = True
 
                 # quit game
                 elif event.type == pygame.QUIT:
@@ -208,38 +227,48 @@ class Main:
 
             pygame.display.update()
 
+    # allows computer to perform moves in board
     def _computer_turn(self, computer, board, game, screen):
         # computer selects piece
-        computer.select_piece(board.tiles)
-                
-        if computer.piece.color == game.turn:
-                    
-            board.calc_moves(computer.piece, computer.move_row, computer.move_col, bool=True)
+        computer.set_move(board)
 
-            if computer.piece:
-                computer.move_piece()
+        # set captured piece if it exists
+        captured = computer.move.captured_piece
 
-                captured = computer.tile.has_piece()
+        # sets en_passant state of the pawn being moved to True
+        board.enable_en_passant(computer.move.piece)
 
-                board.move(computer.piece, computer.move)
+        # moves piece to the new location
+        board.move(computer.move, game)
 
-                board.set_true_en_passant(computer.piece)
+        # play piece sound (if captured, play move_captured, else play move_sound)
+        game.play_sound(captured)
 
-                game.play_sound(captured)
+        # scans the board if enemy king in check
+        in_check = board.scan_check(computer.move)
 
-                piece = board.tiles[computer.move.final.row][computer.move.final.col].piece
-                board.cant_move(piece)
-                # declare winner if pieces can't move and king in check
-                if board.enemy_cant_move and board.king_check:
-                    game.declare_winner_by_mate()
-                # declares stalemate if pieces can't move but king isn't in check
-                elif board.enemy_cant_move:
-                    game.declare_stalemate()
+        # saves the moves into board.record_of_moves
+        board.save_moves(computer.move)
 
-                # updates everything
-                game.show_bg(screen)
-                game.show_last_moves(screen)
-                game.show_pieces(screen, board)
+        # removes record of captured piece from the board
+        board.captured_piece = None
+
+        # declare check mate if enemy cant move and king in check
+        if board.cant_move(computer.move.piece.color) and in_check:
+            game.declare_winner_by_mate()
+        # declare stalemate if enemy cant move
+        elif board.cant_move(computer.move.piece.color):
+            game.declare_stalemate()
+        # declare draw if only kings on board
+        elif len(board.pieces_on_board) == 2:
+            game.declare_draw()
+
+        # updates everything
+        game.show_bg(screen)
+        game.show_last_moves(screen)
+        game.show_pieces(screen, board)
+
+        game.next_turn()
 
 
 main = Main()

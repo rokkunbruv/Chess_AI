@@ -133,6 +133,12 @@ class Game:
 
         print('Stalemate')
 
+    # declare draw
+    def declare_draw(self):
+        self.end_game = True
+
+        print('Draw')
+
     # set hovered tile to be hover tile
     def set_hover(self, row, col):
         self.hover_tile = self.board.tiles[col][row]
