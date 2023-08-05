@@ -97,8 +97,19 @@ class Game:
 
             pygame.draw.rect(surface, color, [self.hover_tile.col * TILE_SIZE, self.hover_tile.row * TILE_SIZE, TILE_SIZE, TILE_SIZE], width=3)
 
-    def update_promotion(self, piece):
-        pass
+    '''FIX LATER'''
+    def promotion(self):
+        piece = None
+        loop = False
+
+        '''TEMPORARY COZ IDK HOW PYGAME WORKS'''
+        # select piece
+        print('Choose what piece to promote:')
+        print("'Q' - Queen        'R' - Rook")
+        print("'B' - Bishop       'N' - Knight")
+        print("'X' - Cancel")
+
+        return piece
 
     # switches player turn
     def next_turn(self):
@@ -116,6 +127,7 @@ class Game:
         print('The loser is', self.loser)
         print('Press r to restart')
 
+    # declare stalemate
     def declare_stalemate(self):
         self.end_game = True
 

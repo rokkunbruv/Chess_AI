@@ -44,7 +44,7 @@ class Board():
         self._add_pieces()
 
     # moves piece from initial pos to final pos stored in move obj
-    def move(self, move):
+    def move(self, move, game=None):
         piece = move.piece
         
         # since piece hasnt captured anything yet, it is first initialized to False
@@ -95,7 +95,8 @@ class Board():
 
             # check if pawn promoted
             if pawn.check_promotion():
-                # type = game.promotion()
+                '''FIX LATER'''
+                #type = game.promotion()
                 
                 # set pawn promoted to true
                 pawn.promoted = True
@@ -108,7 +109,6 @@ class Board():
 
                 # replace pawn with promoted piece
                 self.tiles[final[0]][final[1]].piece = move.piece = promoted_piece
-
                 move.piece.update_tile(final[0], final[1])
 
         # significies that the piece has moved

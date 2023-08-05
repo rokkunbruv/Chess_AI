@@ -1,4 +1,11 @@
 RENAME ALL OCCURRENCES OF SAME VARIABLE BY USING F2. THANK ME LATER UWU LMAO
 
 THINGS TO WORK ON IN THE CHESS_AI CODE (PLAYER VS PLAYER):
-1. Only register mouse inputs when lies inside of window
+1. Ability to choose which piece to promote to - requires some complex big brain pygame shit that i cant comprehend
+    - 1.1 i attempted to make a mini-game loop inside the promotion function that primarily waits the player to input
+      a key (letter) to select a piece to promote to, but fsr, my game freezes and it doesnt actually do anything
+        - i could create that loop inside my pawn class instead so i can only import pygame once and avoid creating
+          errors
+    - 1.2 another one i thought of was doing it in the actual game loop instead, but i feel like itll make my main
+      loop function, which already looks cluttered, even messier (which is bad practice imo), so yeah
+    - imma skip this one for now and move on to updating my computer class

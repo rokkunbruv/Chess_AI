@@ -5,7 +5,6 @@ import sys
 
 from constants import *
 from game import Game
-from tile import Tile
 from move import Move
 from piece import *
 from undo import undo
@@ -141,7 +140,7 @@ class Main:
                                 board.enable_en_passant(move.piece)
 
                                 # moves piece to the new location
-                                board.move(move)
+                                board.move(move, game)
 
                                 # play piece sound (if captured, play move_captured, else play move_sound)
                                 game.play_sound(captured)
