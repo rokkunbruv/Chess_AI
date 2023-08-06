@@ -2,7 +2,9 @@ RENAME ALL OCCURRENCES OF SAME VARIABLE BY USING F2. THANK ME LATER UWU LMAO
 PREVIEW README.MD USING CTRL+K V
 
 THINGS TO WORK ON IN THE CHESS_AI CODE (PLAYER VS PLAYER):
-1. Ability to choose which piece to promote to - requires some complex big brain pygame shit that i cant comprehend
+1. The bishop fsr used the calc_moves method of pawn because it's trying to check if it can do en pass
+2. Fs weird r a piece is trying to capture smth that doesnt exist?
+3. Ability to choose which piece to promote to - requires some complex big brain pygame shit that i cant comprehend
     - 1.1 i attempted to make a mini-game loop inside the promotion function that primarily waits the player to input
       a key (letter) to select a piece to promote to, but fsr, my game freezes and it doesnt actually do anything
         - i could create that loop inside my pawn class instead so i can only import pygame once and avoid creating

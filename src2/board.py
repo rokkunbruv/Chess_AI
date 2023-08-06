@@ -134,7 +134,7 @@ class Board():
         self.tiles[move.final[0]][move.final[1]].piece.update_tile(move.final[0], move.final[1])
 
         # removes captured piece from pieces_on_board
-        if temp_c:
+        if temp_c != None:
             temp_c.captured = True
             self.update_pieces_on_board(temp_c)
 
@@ -274,7 +274,10 @@ class Board():
     # add pieces on board to self.pieces_on_board
     def update_pieces_on_board(self, piece):
         if piece.captured:
-            self.pieces_on_board.remove(piece)
+            try:
+                self.pieces_on_board.remove(piece)
+            except ValueError:
+                print(True if piece in self.pieces_on_board else False)
         else:
             self.pieces_on_board.append(piece)
 
@@ -294,6 +297,9 @@ class Board():
 
         # check 'disable enpas when pawn is pinned' mechanic
         #fen_str = '8/2pp6/8/KP5r/1R5p2k/8/4P4/8'
+
+        # check king capture promoted pawn protected by knight bug
+        #fen_str = '8/4N2Pk1/8/8/8/8/8/K7'
 
         fen(self, fen_str)
     
@@ -408,8 +414,6 @@ def knight_check(board, king):
                 if board.in_range(r, c):
                     if board.tiles[r][c].piece == king:
                         return True
-                else:
-                    break
                     
     return False
 

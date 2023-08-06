@@ -11,6 +11,8 @@ from undo import undo
 
 from computer import Computer
 
+from engine import Engine
+
 class Main:
     def __init__(self):
         pygame.init()
@@ -28,9 +30,15 @@ class Main:
         # initialize Computers
         computer_w = Computer('white')
         computer_b = Computer('black')
-
         # True to enable computer vs computer
         com_vs_com = False
+        count = 0
+
+        # initialize Engine
+        engine = Engine()
+        # True to enable engine
+        enable_en = False
+        
 
         # main pygame loop
         while True:
@@ -47,13 +55,22 @@ class Main:
             if com_vs_com:
                 if not game.end_game:
                     if game.turn == computer_w.color:
-                        self._computer_turn(computer_w, board, game, screen)
+                        self._computer_turn(computer_w, board, game, screen, count)
+                        count += 1
                     elif game.turn == computer_b.color:
-                        self._computer_turn(computer_b, board, game, screen)
+                        self._computer_turn(computer_b, board, game, screen, count)
+                        count += 1
+
+            if enable_en:
+                num = engine.move_generation(2, self, screen, game, board)
+                print(num)
+                enable_en = False
                 
             for event in pygame.event.get():
+                # PLAYER CAN'T MOVE IF COMPUTER / ENGINE IS STILL OPERATING
+                
                 # if you press mouse left-click
-                if event.type == pygame.MOUSEBUTTONDOWN and not com_vs_com:
+                if event.type == pygame.MOUSEBUTTONDOWN and not com_vs_com and not enable_en:
                     dragger.update_mouse(event.pos)
 
                     # stores the row and col location of the mouse cursor
@@ -85,7 +102,7 @@ class Main:
                                 game.show_pieces(screen, board)
 
                 # when the mouse cursor is moving
-                elif event.type == pygame.MOUSEMOTION and not com_vs_com:
+                elif event.type == pygame.MOUSEMOTION and not com_vs_com and not enable_en:
                     # stores current row and col locations of mouse cursor
                     motion_row = event.pos[1] // TILE_SIZE
                     motion_col = event.pos[0] // TILE_SIZE
@@ -107,7 +124,7 @@ class Main:
                             dragger.update_blit(screen)
 
                 # if you release mouse left-click
-                elif event.type == pygame.MOUSEBUTTONUP and not com_vs_com:
+                elif event.type == pygame.MOUSEBUTTONUP and not com_vs_com and not enable_en:
                     # updates the current mouse pos
                     if dragger.dragging:
                         dragger.update_mouse(event.pos)
@@ -176,7 +193,7 @@ class Main:
                 elif event.type == pygame.KEYDOWN:
 
                     # click 'u' to undo move
-                    if event.key == pygame.K_u and not com_vs_com:
+                    if event.key == pygame.K_u and not com_vs_com and not enable_en:
                         # undo won't work when a piece is currently being dragged and when there's nothing to undo
                         if not dragger.dragging and board.record_of_moves != []:
                             # undos the recent move
@@ -199,13 +216,14 @@ class Main:
                         board = self.game.board
                         dragger = self.game.dragger
                         com_vs_com = False
+                        count = 0
 
                     # click 'c' to enable computer vs computer
                     # turn off computer vs computer & restart by pressing 'c' again
 
                     # only enable computer vs computer if player didn't touch
                     # any pieces on board
-                    if event.key == pygame.K_c and board.record_of_moves == []:
+                    if event.key == pygame.K_c and board.record_of_moves == [] and not enable_en:
                         # restart if computer vs computer is on
                         if com_vs_com:
                             game.reset()
@@ -220,6 +238,20 @@ class Main:
                         else:
                             com_vs_com = True
 
+                    # click 'e' to execute engine
+                    if event.key == pygame.K_e and board.record_of_moves == [] and not com_vs_com:
+                        if enable_en:
+                            game.reset()
+
+                            # restart initialization
+                            screen = self.screen
+                            game = self.game
+                            board = self.game.board
+                            dragger = self.game.dragger
+                            enable_en = False
+                        else:
+                            enable_en = True
+
                 # quit game
                 elif event.type == pygame.QUIT:
                     pygame.quit()
@@ -228,7 +260,7 @@ class Main:
             pygame.display.update()
 
     # allows computer to perform moves in board
-    def _computer_turn(self, computer, board, game, screen):
+    def _computer_turn(self, computer, board, game, screen, count):
         # computer selects piece
         computer.set_move(board)
 
@@ -256,12 +288,15 @@ class Main:
         # declare check mate if enemy cant move and king in check
         if board.cant_move(computer.move.piece.color) and in_check:
             game.declare_winner_by_mate()
+            print(count)
         # declare stalemate if enemy cant move
         elif board.cant_move(computer.move.piece.color):
             game.declare_stalemate()
+            print(count)
         # declare draw if only kings on board
         elif len(board.pieces_on_board) == 2:
             game.declare_draw()
+            print(count)
 
         # updates everything
         game.show_bg(screen)
