@@ -123,6 +123,10 @@ class Pawn(Piece):
                     if board.tiles[r_enpas][c_move].has_rival(self.color):
                         # set captured piece
                         c = board.tiles[r_enpas][c_move].piece
+
+                        # ensures that the selected captured piece is actually a pawn
+                        if not isinstance(c, Pawn):
+                            break
                         
                         # ensures that captured pawn has been recently moved
                         # otherwise you cant do en passant

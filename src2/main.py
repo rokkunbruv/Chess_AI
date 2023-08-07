@@ -51,6 +51,11 @@ class Main:
             if dragger.dragging:
                 dragger.update_blit(screen)
 
+            if len(board.pieces_on_board) == 3:
+                com_vs_com = False
+            if board.test == True:
+                com_vs_com = False
+
             # computer movements
             if com_vs_com:
                 if not game.end_game:
@@ -61,6 +66,7 @@ class Main:
                         self._computer_turn(computer_b, board, game, screen, count)
                         count += 1
 
+            # engine calculation
             if enable_en:
                 num = engine.move_generation(2, self, screen, game, board)
                 print(num)
@@ -70,7 +76,9 @@ class Main:
                 # PLAYER CAN'T MOVE IF COMPUTER / ENGINE IS STILL OPERATING
                 
                 # if you press mouse left-click
-                if event.type == pygame.MOUSEBUTTONDOWN and not com_vs_com and not enable_en:
+                # cannot click piece if computer vs computer is still running, engine calculation is still ongoing
+                # and game has officially ended
+                if event.type == pygame.MOUSEBUTTONDOWN and not com_vs_com and not enable_en and not game.end_game:
                     dragger.update_mouse(event.pos)
 
                     # stores the row and col location of the mouse cursor
@@ -166,14 +174,14 @@ class Main:
                                 # removes record of captured piece from the board
                                 board.captured_piece = None
 
-                                # declare check mate if enemy cant move and king in check
+                                # declares check mate if enemy cant move and king in check
                                 if board.cant_move(dragger.piece.color) and in_check:
                                     game.declare_winner_by_mate()
-                                # declare stalemate if enemy cant move
+                                # declares stalemate if enemy cant move
                                 elif board.cant_move(dragger.piece.color):
                                     game.declare_stalemate()
-                                # declare draw if only kings on board
-                                elif len(board.pieces_on_board) == 2:
+                                # declares draw
+                                elif board.draw():
                                     game.declare_draw()
 
                                 # updates everything
@@ -294,7 +302,7 @@ class Main:
             game.declare_stalemate()
             print(count)
         # declare draw if only kings on board
-        elif len(board.pieces_on_board) == 2:
+        elif board.draw(game):
             game.declare_draw()
             print(count)
 

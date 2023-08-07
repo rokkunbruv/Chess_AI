@@ -15,6 +15,8 @@ class Game:
         self.loser = None
         self.end_game = False
 
+        self.draw_type = ''
+
         self.board = Board()
         self.dragger = Dragger()
         self.config = Config()
@@ -132,12 +134,14 @@ class Game:
         self.end_game = True
 
         print('Stalemate')
+        print('Press r to restart')
 
     # declare draw
     def declare_draw(self):
         self.end_game = True
 
-        print('Draw')
+        print('Draw' + f' by {self.draw_type}')
+        print('Press r to restart')
 
     # set hovered tile to be hover tile
     def set_hover(self, row, col):

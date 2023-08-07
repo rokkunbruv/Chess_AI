@@ -39,6 +39,11 @@ class Board():
         self.white_castle = None 
         self.black_castle = None
 
+        # 50-move rule tracker
+        self.fifty_count = 0
+
+        self.test = False
+
         # creates board and add pieces to board
         self._create()
         self._add_pieces()
@@ -278,8 +283,70 @@ class Board():
                 self.pieces_on_board.remove(piece)
             except ValueError:
                 print(True if piece in self.pieces_on_board else False)
+                self.test = True
         else:
             self.pieces_on_board.append(piece)
+
+    # scans the board for any draw possibilities
+    def draw(self, game):
+
+        # king vs king draw
+        if len(self.pieces_on_board) == 2:
+            game.draw_type = 'king vs king'
+            return True
+        
+        # king vs king w/ bishop or knight draw
+        elif len(self.pieces_on_board) == 4 or len(self.pieces_on_board) == 3:
+            game.draw_type = 'insufficient material'
+            
+            knights = bishops = []
+            
+            for piece in self.pieces_on_board:
+                if isinstance(piece, Bishop):
+                    bishops.append(piece)
+                elif isinstance(piece, Knight):
+                    knights.append(piece)
+                elif isinstance(piece, King):
+                    continue
+                else:
+                    break
+            
+            if knights != [] or bishops != []:
+                if len(knights) == 2:
+                    return True
+                elif len(bishops) == 2:
+                    if bishops[0].color != bishops[1].color:
+                        if bishops[0].row % 2 != bishops[1].row % 2:
+                            return True
+                        else:
+                            False
+                    else:
+                        return False
+                else:
+                    return True
+            
+        # declare draw by threefold repetition
+        elif len(self.record_of_moves) >= 9:
+            game.draw_type = 'threefold repetition'
+            if self.record_of_moves[-5].initial == self.record_of_moves[-1].initial:
+                if self.record_of_moves[-5].initial == self.record_of_moves[-9].initial:
+                    return True
+
+        # keeps track of 50-move rule
+        elif self.record_of_moves != []:
+            game.draw_type = 'exceeding 50 moves'
+            # get recent move
+            move = self.record_of_moves[-1]
+            # add 1 to fifty count if it's not a pawn move and it didnt capture any piece
+            if not isinstance(move.piece, Pawn) or not move.capture:
+                self.fifty_count += 1
+            else:
+                self.fifty_count = 0
+
+            if self.fifty_count == 50:
+                return True
+                
+        return False
 
     # adds tile objects inside self.tiles
     def _create(self):
@@ -300,6 +367,9 @@ class Board():
 
         # check king capture promoted pawn protected by knight bug
         #fen_str = '8/4N2Pk1/8/8/8/8/8/K7'
+
+        # check king capture enemy king at corner bug
+        #fen_str = 'k7/8/2K6/8/8/8/8/8'
 
         fen(self, fen_str)
     
@@ -432,7 +502,7 @@ def king_check(board, king):
                 if isinstance(k, King) and king.color != k.color:
                     return True
         else:
-            break
+            continue
     
     return False
 

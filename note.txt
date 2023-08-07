@@ -4,6 +4,8 @@ PREVIEW README.MD USING CTRL+K V
 THINGS TO WORK ON IN THE CHESS_AI CODE (PLAYER VS PLAYER):
 1. The bishop fsr used the calc_moves method of pawn because it's trying to check if it can do en pass
 2. Fs weird r a piece is trying to capture smth that doesnt exist?
+    - Upon further investigation, i've found out that the update_pieces_on_board function doesnt work properly, which 
+    lead to bugs such as calc_moves not working on some pieces
 3. Ability to choose which piece to promote to - requires some complex big brain pygame shit that i cant comprehend
     - 1.1 i attempted to make a mini-game loop inside the promotion function that primarily waits the player to input
       a key (letter) to select a piece to promote to, but fsr, my game freezes and it doesnt actually do anything
